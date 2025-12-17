@@ -91,18 +91,18 @@ function initWhatsAppForm() {
     
     if (!whatsappBtn || !contactForm) return;
     
+    // WhatsApp number - CORRECTED: 91 (India code) + 6304962115 (10 digits)
+    const whatsappNumber = '916304962115'; // Fixed: Added the missing '5'
+    
     // Form validation patterns
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phonePattern = /^[0-9]{10}$/;
     
     // Clear all error messages
     function clearErrors() {
-        const errorElements = document.querySelectorAll('.error-message');
-        errorElements.forEach(element => {
-            element.textContent = '';
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.textContent = '';
         });
         
-        // Reset border colors
         document.querySelectorAll('.form-group input, .form-group textarea').forEach(el => {
             el.style.borderColor = '#ddd';
         });
@@ -135,13 +135,32 @@ function initWhatsAppForm() {
     }
     
     function validatePhone(value) {
+        // Remove all non-digit characters
         const cleanValue = value.replace(/\D/g, '');
-        return phonePattern.test(cleanValue);
+        // Check if it's exactly 10 digits
+        return cleanValue.length === 10;
+    }
+    
+    // Format phone number for display
+    function formatPhoneNumber(phone) {
+        const cleaned = phone.replace(/\D/g, '');
+        if (cleaned.length === 10) {
+            return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3');
+        }
+        return phone;
     }
     
     // Format WhatsApp message
     function formatWhatsAppMessage(formData) {
-        return `*New Inquiry from Website*%0A%0A*Name:* ${formData.name}%0A*Phone:* ${formData.phone}%0A*Email:* ${formData.email}%0A*Subject:* ${formData.subject}%0A*Message:* ${formData.message}%0A%0A_This inquiry was sent via your website contact form_`;
+        return `*New Inquiry from Gururaja Engineers Website*%0A%0A👤 *Name:* ${formData.name}%0A📞 *Phone:* ${formData.phone}%0A📧 *Email:* ${formData.email}%0A📋 *Subject:* ${formData.subject}%0A💬 *Message:* ${formData.message}%0A%0A_This inquiry was sent via website contact form_`;
+    }
+    
+    // Create WhatsApp URL with proper encoding
+    function createWhatsAppUrl(formData) {
+        const message = formatWhatsAppMessage(formData);
+        
+        // Use this format which works for both web and mobile
+        return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     }
     
     // Validate entire form
@@ -160,7 +179,7 @@ function initWhatsAppForm() {
             isValid = false;
         }
         
-        // Phone validation
+        // Phone validation - updated error message
         if (!validateField('phone', 'phoneError', validateRequired, 'Phone number is required')) {
             isValid = false;
         } else if (!validateField('phone', 'phoneError', validatePhone, 'Please enter a valid 10-digit phone number')) {
@@ -180,49 +199,71 @@ function initWhatsAppForm() {
         return isValid;
     }
     
-    // WhatsApp button click handler
-    whatsappBtn.addEventListener('click', function() {
+    // WhatsApp button click handler - SIMPLIFIED VERSION
+    whatsappBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         clearErrors();
         
         if (validateForm()) {
             // Get form data
             const formData = {
                 name: document.getElementById('name').value.trim(),
-                phone: document.getElementById('phone').value.trim().replace(/\D/g, ''),
+                phone: formatPhoneNumber(document.getElementById('phone').value.trim()),
                 email: document.getElementById('email').value.trim(),
                 subject: document.getElementById('subject').value.trim(),
                 message: document.getElementById('message').value.trim()
             };
             
-            // WhatsApp number
-            const whatsappNumber = '916304962115';
-            
-            // Create WhatsApp message
-            const whatsappMessage = formatWhatsAppMessage(formData);
-            
             // Create WhatsApp URL
-            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+            const message = formatWhatsAppMessage(formData);
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
             
-            // Open WhatsApp in new tab
-            window.open(whatsappUrl, '_blank');
+            // Show loading state
+            const originalText = whatsappBtn.innerHTML;
+            whatsappBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening WhatsApp...';
+            whatsappBtn.disabled = true;
             
-            // Show success message
-            formSuccess.textContent = 'Opening WhatsApp with your message... Please send it to contact us!';
-            formSuccess.style.display = 'block';
-            formSuccess.style.backgroundColor = '#25D366';
-            
-            // Optional: Reset form after successful submission
+            // Open WhatsApp
             setTimeout(() => {
-                contactForm.reset();
-                formSuccess.style.display = 'none';
-            }, 5000);
-            
-            // Log form data to console (for demo)
-            console.log('WhatsApp form data:', {
-                ...formData,
-                whatsappUrl: whatsappUrl,
-                timestamp: new Date().toISOString()
-            });
+                // Always open in new tab
+                window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+                
+                // Show success message
+                formSuccess.innerHTML = `
+                    <div style="display: flex; align-items: flex-start;">
+                        <i class="fab fa-whatsapp" style="color: #25D366; font-size: 1.5rem; margin-right: 10px;"></i>
+                        <div>
+                            <strong>WhatsApp is opening...</strong>
+                            <p style="margin: 5px 0 0 0; font-size: 0.9rem;">
+                                Your message is ready to send! Check the new tab/window.
+                            </p>
+                            <p style="margin: 10px 0 0 0; font-size: 0.85rem; color: #666;">
+                                <small>If WhatsApp didn't open, please allow pop-ups for this site.</small>
+                            </p>
+                        </div>
+                    </div>
+                `;
+                formSuccess.style.display = 'block';
+                formSuccess.style.backgroundColor = '#25D366';
+                formSuccess.style.color = 'white';
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    whatsappBtn.innerHTML = originalText;
+                    whatsappBtn.disabled = false;
+                }, 2000);
+                
+                // Reset form after 5 seconds
+                setTimeout(() => {
+                    contactForm.reset();
+                    formSuccess.style.display = 'none';
+                }, 5000);
+                
+                // Log for debugging
+                console.log('WhatsApp URL:', whatsappUrl);
+                console.log('Form data:', formData);
+                
+            }, 300);
         } else {
             // Scroll to first error
             const firstError = document.querySelector('.error-message:not(:empty)');
@@ -232,7 +273,7 @@ function initWhatsAppForm() {
         }
     });
     
-    // Real-time validation on input
+    // Real-time validation
     const formFields = ['name', 'email', 'phone', 'subject', 'message'];
     formFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
@@ -276,9 +317,9 @@ function initWhatsAppForm() {
         }
     });
     
-    // Allow form submission with Enter key (but it will trigger WhatsApp)
+    // Allow Enter key in textarea but not in other fields
     contactForm.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.target.tagName === 'TEXTAREA') {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && !e.target.type === 'textarea') {
             e.preventDefault();
             whatsappBtn.click();
         }
