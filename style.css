@@ -1,3 +1,4 @@
+
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -578,6 +579,157 @@ body {
     margin-top: 20px;
     text-align: center;
     display: none;
+}
+/* Contact Links Styling */
+.contact-link {
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: var(--transition);
+    display: inline-block;
+}
+
+.contact-link:hover {
+    color: #d35400;
+    text-decoration: underline;
+}
+
+.whatsapp-link {
+    color: #25D366;
+    font-weight: 500;
+}
+
+.whatsapp-link:hover {
+    color: #1da851;
+}
+
+/* Quick Connect Links */
+.quick-connect-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.quick-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.quick-link i {
+    margin-right: 8px;
+    font-size: 1rem;
+}
+
+.call-link {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--accent-color);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.call-link:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.whatsapp-link.quick-link {
+    background-color: rgba(37, 211, 102, 0.1);
+    color: #25D366;
+    border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.whatsapp-link.quick-link:hover {
+    background-color: #25D366;
+    color: white;
+}
+
+.email-link {
+    background-color: rgba(230, 126, 34, 0.1);
+    color: var(--secondary-color);
+    border: 1px solid rgba(230, 126, 34, 0.3);
+}
+
+.email-link:hover {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+/* Alternative Contact Section */
+.alternative-contact {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #eee;
+    text-align: center;
+}
+
+.alternative-contact p {
+    margin-bottom: 15px;
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+.direct-contact-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-call, .btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 140px;
+}
+
+.btn-call {
+    background-color: var(--accent-color);
+}
+
+.btn-call:hover {
+    background-color: #2980b9;
+}
+
+/* Form Buttons Container */
+.form-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+/* WhatsApp Button Styling */
+.btn-whatsapp {
+    background-color: #25D366;
+    color: white;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-whatsapp:hover {
+    background-color: #1da851;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+}
+
+/* Responsive form buttons */
+@media (max-width: 576px) {
+    .form-buttons {
+        flex-direction: column;
+    }
+    
+    .form-buttons .btn {
+        width: 100%;
+    }
 }
 
 /* Footer */

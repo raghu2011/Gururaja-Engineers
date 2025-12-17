@@ -6,9 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize all functionality
     initNavbar();
     initSmoothScroll();
-    initContactForm();
+    initWhatsAppForm(); // Changed from initContactForm()
     initCurrentYear();
     initScrollAnimation();
+    initNewsletter();
 });
 
 // Mobile Navigation Toggle
@@ -82,20 +83,28 @@ function initSmoothScroll() {
     });
 }
 
-// Contact Form Validation and Submission
-function initContactForm() {
+// WhatsApp Form Validation and Submission (Replaces initContactForm)
+function initWhatsAppForm() {
+    const whatsappBtn = document.getElementById('whatsappSubmit');
     const contactForm = document.getElementById('contactForm');
     const formSuccess = document.getElementById('formSuccess');
     
+    if (!whatsappBtn || !contactForm) return;
+    
     // Form validation patterns
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phonePattern = /^[\+]?[1-9][\d]{0,15}$/;
+    const phonePattern = /^[0-9]{10}$/;
     
     // Clear all error messages
     function clearErrors() {
         const errorElements = document.querySelectorAll('.error-message');
         errorElements.forEach(element => {
             element.textContent = '';
+        });
+        
+        // Reset border colors
+        document.querySelectorAll('.form-group input, .form-group textarea').forEach(el => {
+            el.style.borderColor = '#ddd';
         });
     }
     
@@ -126,8 +135,13 @@ function initContactForm() {
     }
     
     function validatePhone(value) {
-        if (value === '') return true; // Phone is optional
-        return phonePattern.test(value);
+        const cleanValue = value.replace(/\D/g, '');
+        return phonePattern.test(cleanValue);
+    }
+    
+    // Format WhatsApp message
+    function formatWhatsAppMessage(formData) {
+        return `*New Inquiry from Website*%0A%0A*Name:* ${formData.name}%0A*Phone:* ${formData.phone}%0A*Email:* ${formData.email}%0A*Subject:* ${formData.subject}%0A*Message:* ${formData.message}%0A%0A_This inquiry was sent via your website contact form_`;
     }
     
     // Validate entire form
@@ -146,8 +160,10 @@ function initContactForm() {
             isValid = false;
         }
         
-        // Phone validation (optional)
-        if (!validateField('phone', 'phoneError', validatePhone, 'Please enter a valid phone number')) {
+        // Phone validation
+        if (!validateField('phone', 'phoneError', validateRequired, 'Phone number is required')) {
+            isValid = false;
+        } else if (!validateField('phone', 'phoneError', validatePhone, 'Please enter a valid 10-digit phone number')) {
             isValid = false;
         }
         
@@ -164,38 +180,55 @@ function initContactForm() {
         return isValid;
     }
     
-    // Form submission handler
-    contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+    // WhatsApp button click handler
+    whatsappBtn.addEventListener('click', function() {
         clearErrors();
         
         if (validateForm()) {
-            // In a real application, this would send data to a server
-            // For demo purposes, we'll simulate form submission
+            // Get form data
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                phone: document.getElementById('phone').value.trim().replace(/\D/g, ''),
+                email: document.getElementById('email').value.trim(),
+                subject: document.getElementById('subject').value.trim(),
+                message: document.getElementById('message').value.trim()
+            };
+            
+            // WhatsApp number
+            const whatsappNumber = '916304962115';
+            
+            // Create WhatsApp message
+            const whatsappMessage = formatWhatsAppMessage(formData);
+            
+            // Create WhatsApp URL
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+            
+            // Open WhatsApp in new tab
+            window.open(whatsappUrl, '_blank');
             
             // Show success message
+            formSuccess.textContent = 'Opening WhatsApp with your message... Please send it to contact us!';
             formSuccess.style.display = 'block';
+            formSuccess.style.backgroundColor = '#25D366';
             
-            // Reset form after 3 seconds
+            // Optional: Reset form after successful submission
             setTimeout(() => {
                 contactForm.reset();
                 formSuccess.style.display = 'none';
-                
-                // Scroll to success message
-                formSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 3000);
+            }, 5000);
             
             // Log form data to console (for demo)
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                subject: document.getElementById('subject').value,
-                message: document.getElementById('message').value,
+            console.log('WhatsApp form data:', {
+                ...formData,
+                whatsappUrl: whatsappUrl,
                 timestamp: new Date().toISOString()
-            };
-            
-            console.log('Form submitted with data:', formData);
+            });
+        } else {
+            // Scroll to first error
+            const firstError = document.querySelector('.error-message:not(:empty)');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     });
     
@@ -212,11 +245,15 @@ function initContactForm() {
                     case 'email':
                         if (field.value.trim() !== '') {
                             validateField('email', 'emailError', validateEmail, 'Please enter a valid email address');
+                        } else {
+                            validateField('email', 'emailError', validateRequired, 'Email is required');
                         }
                         break;
                     case 'phone':
                         if (field.value.trim() !== '') {
-                            validateField('phone', 'phoneError', validatePhone, 'Please enter a valid phone number');
+                            validateField('phone', 'phoneError', validatePhone, 'Please enter a valid 10-digit phone number');
+                        } else {
+                            validateField('phone', 'phoneError', validateRequired, 'Phone number is required');
                         }
                         break;
                     case 'subject':
@@ -227,6 +264,23 @@ function initContactForm() {
                         break;
                 }
             });
+            
+            // Clear error on input
+            field.addEventListener('input', function() {
+                const errorElement = document.getElementById(fieldId + 'Error');
+                if (errorElement && errorElement.textContent) {
+                    errorElement.textContent = '';
+                    field.style.borderColor = '#ddd';
+                }
+            });
+        }
+    });
+    
+    // Allow form submission with Enter key (but it will trigger WhatsApp)
+    contactForm.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.target.tagName === 'TEXTAREA') {
+            e.preventDefault();
+            whatsappBtn.click();
         }
     });
 }
@@ -269,7 +323,7 @@ function initScrollAnimation() {
 }
 
 // Newsletter subscription (demo functionality)
-document.addEventListener('DOMContentLoaded', function() {
+function initNewsletter() {
     const newsletterBtn = document.querySelector('.newsletter button');
     const newsletterInput = document.querySelector('.newsletter input');
     
@@ -299,4 +353,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+}
